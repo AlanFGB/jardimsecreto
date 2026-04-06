@@ -3,210 +3,346 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoPlanta - Postagens</title>
+    <title>GeoPlanta - Monitoramento de Botânica</title>
     <style>
-        /* CSS BÁSICO para facilitar a leitura */
-        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1, h2 { color: #38761d; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input[type="text"], textarea { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        button { background-color: #38761d; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; }
-        button:hover { background-color: #6aa84f; }
-        .postagem { border: 1px solid #ccc; padding: 15px; margin-top: 10px; border-radius: 4px; background-color: #e6ffe6; }
-        .coordenadas { font-size: 0.9em; color: #555; margin-top: 5px; }
-        .secao-planta { margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        :root {
+            --primary: #2d5a27;
+            --secondary: #4a7c44;
+            --accent: #8eb057;
+            --bg: #f8f9fa;
+            --text: #333;
+            --white: #ffffff;
+            --error: #d93025;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        p.subtitle { color: #666; margin-top: 0; }
+
+        .card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .geo-status {
+            font-size: 0.85rem;
+            padding: 10px;
+            background: #eef2ed;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-dot.active { background: #4caf50; }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        button:hover { background-color: var(--secondary); }
+
+        .postagem {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .post-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .post-img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background-color: #eee;
+        }
+
+        .post-body { padding: 15px; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .status-otimo { background: #d4edda; color: #155724; }
+        .status-atencao { background: #fff3cd; color: #856404; }
+        .status-doente { background: #f8d7da; color: #721c24; }
+
+        .btn-delete {
+            background: none;
+            color: var(--error);
+            border: 1px solid var(--error);
+            padding: 5px 10px;
+            width: auto;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-delete:hover { background: var(--error); color: white; }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            bottom: 30px;
+            font-size: 17px;
+        }
+
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>GeoPlanta - Novo Post</h1>
+    <header>
+        <h1>🌿 GeoPlanta</h1>
+        <p class="subtitle">Registre a flora ao seu redor</p>
+    </header>
 
-    <div class="coordenadas">
-        **Sua Localização:** <span id="localizacaoStatus">Obtendo...</span>
-        <input type="hidden" id="latitude" value="">
-        <input type="hidden" id="longitude" value="">
-    </div>
-
-    <form id="formPostagem">
-        <div class="secao-planta">
-            <h2>1. Informações da Planta</h2>
-            <label for="nomePlanta">Nome Comum:</label>
-            <input type="text" id="nomePlanta" required>
-            
-            <label for="especie">Espécie/Nome Científico:</label>
-            <input type="text" id="especie">
-            
-            <label for="imagemUrl">Link/URL da Imagem:</label>
-            <input type="text" id="imagemUrl">
+    <div class="card">
+        <div class="geo-status">
+            <div id="statusDot" class="status-dot"></div>
+            <span id="localizacaoStatus">Obtendo GPS...</span>
         </div>
 
-        <div class="secao-planta">
-            <h2>2. Saúde da Planta</h2>
-            <label for="statusSaude">Status Geral (Ex: Ótimo, Atenção, Doente):</label>
-            <input type="text" id="statusSaude" required>
-            
-            <label for="notasSaude">Notas sobre a Saúde (Descrição do problema ou cuidado):</label>
-            <textarea id="notasSaude" rows="4"></textarea>
-        </div>
+        <form id="formPostagem">
+            <label for="nomePlanta">Nome da Planta</label>
+            <input type="text" id="nomePlanta" placeholder="Ex: Jiboia, Ipê Amarelo..." required>
 
-        <button type="submit">Postar Planta (Salvar)</button>
-    </form>
+            <label for="especie">Espécie (Científico)</label>
+            <input type="text" id="especie" placeholder="Ex: Epipremnum aureum">
 
-    <hr>
+            <label for="statusSaude">Condição de Saúde</label>
+            <select id="statusSaude">
+                <option value="Ótimo">Ótimo</option>
+                <option value="Atenção">Requer Atenção</option>
+                <option value="Doente">Doente / Pragas</option>
+            </select>
 
-    <h2>Postagens Salvas</h2>
-    <div id="listaPostagens">
-        <p>Nenhuma postagem salva localmente.</p>
+            <label for="notasSaude">Observações</label>
+            <textarea id="notasSaude" rows="3" placeholder="Descreva o que observou..."></textarea>
+
+            <label for="imagemUrl">URL da Foto</label>
+            <input type="url" id="imagemUrl" placeholder="https://exemplo.com/foto.jpg">
+
+            <input type="hidden" id="latitude">
+            <input type="hidden" id="longitude">
+
+            <button type="submit">Salvar Registro</button>
+        </form>
     </div>
 
+    <h2 style="color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px;">Explorar Registros</h2>
+    <div id="listaPostagens"></div>
 </div>
 
+<div id="toast">Mensagem aqui</div>
+
 <script>
-    // #################################################
-    // # DOCUMENTAÇÃO E LÓGICA JAVASCRIPT
-    // #################################################
+    const STORAGE_KEY = 'geoPlanta_v2';
+    const elements = {
+        lat: document.getElementById('latitude'),
+        lon: document.getElementById('longitude'),
+        status: document.getElementById('localizacaoStatus'),
+        dot: document.getElementById('statusDot'),
+        form: document.getElementById('formPostagem'),
+        lista: document.getElementById('listaPostagens'),
+        toast: document.getElementById('toast')
+    };
 
-    // 1. Variáveis globais para os elementos da página
-    const latitudeInput = document.getElementById('latitude');
-    const longitudeInput = document.getElementById('longitude');
-    const localizacaoStatus = document.getElementById('localizacaoStatus');
-    const formPostagem = document.getElementById('formPostagem');
-    const listaPostagensDiv = document.getElementById('listaPostagens');
-    
-    // Chave que usaremos para salvar no localStorage
-    const STORAGE_KEY = 'geoPlantaPosts'; 
-
-    // #################################################
-    // 2. FUNÇÃO: CAPTURAR GEOLOCALIZAÇÃO
-    // #################################################
-    function getLocalizacao() {
-        // Verifica se o navegador suporta a API de Geolocalização
-        if ('geolocation' in navigator) {
-            localizacaoStatus.textContent = 'Aguardando permissão...';
-            
-            // navigator.geolocation.getCurrentPosition tenta obter a posição atual
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    // SUCESSO: Posição obtida com sucesso
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    
-                    // Armazena nos campos ocultos (hidden) do formulário
-                    latitudeInput.value = lat;
-                    longitudeInput.value = lon;
-                    
-                    localizacaoStatus.textContent = `Latitude: ${lat.toFixed(4)}, Longitude: ${lon.toFixed(4)}`;
-                },
-                (error) => {
-                    // ERRO: O usuário negou ou houve outro problema
-                    console.error('Erro ao obter localização:', error);
-                    localizacaoStatus.textContent = 'Localização negada ou indisponível.';
-                    latitudeInput.value = 'N/A';
-                    longitudeInput.value = 'N/A';
-                }
-            );
-        } else {
-            // Navegador não tem suporte
-            localizacaoStatus.textContent = 'Geolocalização não suportada neste navegador.';
-            latitudeInput.value = 'N/A';
-            longitudeInput.value = 'N/A';
-        }
+    // --- Feedback Visual ---
+    function showToast(msg) {
+        elements.toast.textContent = msg;
+        elements.toast.className = "show";
+        setTimeout(() => { elements.toast.className = elements.toast.className.replace("show", ""); }, 3000);
     }
 
-    // #################################################
-    // 3. FUNÇÃO: SALVAR POSTAGEM
-    // #################################################
-    function salvarPostagem(event) {
-        event.preventDefault(); // Impede o envio padrão do formulário (que recarrega a página)
+    // --- Geolocalização ---
+    function initGeo() {
+        if (!navigator.geolocation) {
+            elements.status.textContent = "GPS não suportado";
+            return;
+        }
 
-        // Cria um objeto (um 'post') com os dados do formulário
-        const novaPostagem = {
-            id: Date.now(), // ID único baseado no timestamp (data/hora)
-            data: new Date().toLocaleString(),
-            // Dados da Geolocalização
-            latitude: latitudeInput.value,
-            longitude: longitudeInput.value,
-            // Dados da Planta
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                elements.lat.value = pos.coords.latitude;
+                elements.lon.value = pos.coords.longitude;
+                elements.status.textContent = `Localizado: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`;
+                elements.dot.classList.add('active');
+            },
+            () => {
+                elements.status.textContent = "GPS desativado (Localização manual)";
+                elements.lat.value = "N/A";
+                elements.lon.value = "N/A";
+            }
+        );
+    }
+
+    // --- Gerenciar Dados ---
+    function salvarPostagem(e) {
+        e.preventDefault();
+
+        const post = {
+            id: Date.now(),
+            data: new Date().toLocaleDateString('pt-BR'),
+            hora: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'}),
+            lat: elements.lat.value,
+            lon: elements.lon.value,
             nome: document.getElementById('nomePlanta').value,
-            especie: document.getElementById('especie').value,
-            imagemUrl: document.getElementById('imagemUrl').value,
-            // Dados de Saúde
-            statusSaude: document.getElementById('statusSaude').value,
-            notasSaude: document.getElementById('notasSaude').value,
+            especie: document.getElementById('especie').value || "Não identificada",
+            saude: document.getElementById('statusSaude').value,
+            notas: document.getElementById('notasSaude').value,
+            img: document.getElementById('imagemUrl').value
         };
 
-        // 3.1. Obter posts existentes do localStorage
-        const postsJson = localStorage.getItem(STORAGE_KEY);
-        // Transforma o texto JSON em um Array de JavaScript. Se for nulo, cria um array vazio []
-        let posts = postsJson ? JSON.parse(postsJson) : []; 
-        
-        // 3.2. Adicionar o novo post
-        posts.push(novaPostagem);
-        
-        // 3.3. Salvar o Array atualizado de volta no localStorage (transforma em texto JSON)
+        const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        posts.unshift(post); // Adiciona no início da lista
         localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
 
-        // 3.4. Limpar o formulário e atualizar a lista
-        formPostagem.reset();
-        exibirPostagens();
-        
-        // Mensagem de sucesso (opcional)
-        alert('Postagem da planta salva com sucesso!');
+        elements.form.reset();
+        showToast("Planta registrada com sucesso!");
+        renderPosts();
     }
 
-    // #################################################
-    // 4. FUNÇÃO: EXIBIR POSTAGENS SALVAS
-    // #################################################
-    function exibirPostagens() {
-        // Obtém e converte as postagens salvas
-        const postsJson = localStorage.getItem(STORAGE_KEY);
-        const posts = postsJson ? JSON.parse(postsJson) : []; 
+    function deletarPost(id) {
+        let posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        posts = posts.filter(p => p.id !== id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+        renderPosts();
+        showToast("Registro removido.");
+    }
 
-        // Limpa a lista atual
-        listaPostagensDiv.innerHTML = ''; 
+    // --- Renderização ---
+    function renderPosts() {
+        const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        elements.lista.innerHTML = '';
 
         if (posts.length === 0) {
-            listaPostagensDiv.innerHTML = '<p>Nenhuma postagem salva localmente.</p>';
-            return; // Encerra a função
+            elements.lista.innerHTML = '<p style="text-align:center; color: #888;">Nenhuma planta catalogada ainda.</p>';
+            return;
         }
 
-        // Loop para criar um elemento HTML para cada postagem
-        posts.forEach(post => {
-            const div = document.createElement('div');
-            div.className = 'postagem';
-            div.innerHTML = `
-                **Data/Hora:** ${post.data}
-                <div class="coordenadas">
-                    **Localização:** Lat: ${post.latitude}, Lon: ${post.longitude}
+        posts.forEach(p => {
+            const statusClass = `status-${p.saude.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`;
+            
+            const card = document.createElement('div');
+            card.className = 'postagem';
+            card.innerHTML = `
+                <div class="post-header">
+                    <div style="display:flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h3 style="margin:0; color: var(--primary);">${p.nome}</h3>
+                            <small><i>${p.especie}</i></small>
+                        </div>
+                        <span class="badge ${statusClass}">${p.saude}</span>
+                    </div>
                 </div>
-                <h3>${post.nome} (${post.especie || 'N/A'})</h3>
-                <p><strong>Status de Saúde:</strong> ${post.statusSaude}</p>
-                <p><strong>Notas:</strong> ${post.notasSaude}</p>
-                ${post.imagemUrl ? `<img src="${post.imagemUrl}" alt="Imagem da Planta" style="max-width:100%; height:auto; margin-top: 10px;">` : ''}
-                <hr>
+                ${p.img ? `<img src="${p.img}" class="post-img" onerror="this.src='https://placehold.co/600x400?text=Planta+Sem+Foto'">` : ''}
+                <div class="post-body">
+                    <p style="margin-top:0;">${p.notas || 'Sem observações adicionais.'}</p>
+                    <div style="font-size: 0.75rem; color: #888; background: #f9f9f9; padding: 8px; border-radius: 4px;">
+                        📍 ${p.lat}, ${p.lon} <br>
+                        📅 ${p.data} às ${p.hora}
+                    </div>
+                    <button class="btn-delete" onclick="deletarPost(${p.id})">Excluir Registro</button>
+                </div>
             `;
-            listaPostagensDiv.appendChild(div);
+            elements.lista.appendChild(card);
         });
     }
 
-    // #################################################
-    // 5. INICIALIZAÇÃO DA APLICAÇÃO
-    // #################################################
-    
-    // Adiciona um "ouvinte" ao formulário para executar a função salvarPostagem no 'submit'
-    formPostagem.addEventListener('submit', salvarPostagem);
-
-    // Quando a página carrega, faz 2 coisas:
-    document.addEventListener('DOMContentLoaded', () => {
-        // Tenta obter a localização do usuário
-        getLocalizacao();
-        // Exibe qualquer postagem salva de uma sessão anterior
-        exibirPostagens();
-    });
-
+    // Inicialização
+    elements.form.addEventListener('submit', salvarPostagem);
+    window.onload = () => {
+        initGeo();
+        renderPosts();
+    };
 </script>
+
 </body>
 </html>
-
